@@ -463,7 +463,7 @@ async function carregarLeads(){
 
 // ---------------- contas a conferir ----------------
 async function verOrfas(){
-  const { data, error } = await sb.from("vw_campanha_orfas").select("*");
+  const { data, error } = await sb.rpc("fn_camp_orfas");
   if(error) return falhou(error);
   const linhas = data || [];
   el("conteudo").innerHTML = `
