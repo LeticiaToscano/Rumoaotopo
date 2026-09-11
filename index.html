@@ -133,6 +133,23 @@ h2::after{content:"";flex:1;height:1px;background:var(--line)}
 .mini div:nth-child(3) .v{color:var(--amber)}
 .mini .k{font-size:8px;text-transform:uppercase;letter-spacing:.06em;color:var(--ash);font-weight:700;margin-top:3px}
 
+/* ---------- card sozinho: a página do comercial ---------- */
+.podio.solo{grid-template-columns:1fr}
+.podio.solo .jog{padding:30px 32px}
+.podio.solo .jog-top{gap:24px}
+.podio.solo .foto{width:136px;height:154px;border-radius:16px}
+.podio.solo .jog-nome{font-size:clamp(1.8rem,4.5vw,2.6rem)}
+.podio.solo .jog-sub{font-size:13px;margin-top:8px}
+.podio.solo .cam{font-size:clamp(3.5rem,9vw,5.6rem)}
+.podio.solo::before{width:260px;height:260px}
+.podio.solo .gols{margin-top:24px;padding:24px 28px;gap:18px;align-items:center}
+.podio.solo .gols .v{font-size:clamp(2.8rem,8vw,4.2rem)}
+.podio.solo .gols .k{font-size:11px;letter-spacing:.18em}
+.podio.solo .mini{gap:13px;margin-top:13px}
+.podio.solo .mini div{padding:20px 12px}
+.podio.solo .mini .v{font-size:1.8rem}
+.podio.solo .mini .k{font-size:9.5px;margin-top:6px}
+
 /* ---------- pré-jogo: o que está em campo ---------- */
 .pre{display:grid;grid-template-columns:1.25fr 1fr;gap:14px;margin-bottom:8px}
 .pre-bx{border:1px solid var(--line);border-radius:16px;padding:22px;
@@ -212,6 +229,10 @@ tbody tr:hover{background:var(--surface-2)}
   main{padding:0 14px 50px}
   .gamebar{margin:0 -14px 20px;padding:22px 14px}
   .podio{grid-template-columns:1fr}
+  .podio.solo .jog{padding:18px}
+  .podio.solo .foto{width:88px;height:100px}
+  .podio.solo .mini div{padding:12px 8px}
+  .podio.solo .mini .v{font-size:1.2rem}
   .pre{grid-template-columns:1fr}
   .funil{grid-template-columns:1fr 1fr}
   .painel{overflow-x:auto}
@@ -490,7 +511,7 @@ async function verPlacar(){
   el("conteudo").innerHTML = `
     ${preHtml}
     <h2>${ger ? "Escalação e placar" : "Sua posição em campo"}</h2>
-    <div class="podio">${cards || '<div class="vazio">O placar abre quando o jogo começar.</div>'}</div>
+    <div class="podio ${lista.length === 1 ? "solo" : ""}">${cards || '<div class="vazio">O placar abre quando o jogo começar.</div>'}</div>
     ${metaHtml}
     <h2>${ger ? "Funil da campanha" : "Seu funil"}</h2>
     <div class="funil">
