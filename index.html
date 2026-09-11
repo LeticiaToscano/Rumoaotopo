@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rumo ao Topo · Placar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pitch:#04120C; --surface:#0B1F15; --surface-2:#112A1D; --line:#1E3A2A;
+  --gold:#D4A94E; --gold-hi:#F5E3AC; --gold-deep:#9A7526;
+  --chalk:#F2F5F1; --ash:#93A79A; --red:#E5674E;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pitch);color:var(--chalk);
+  font-family:'Archivo',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.hidden{display:none!important}
+
+/* ---------- login ---------- */
+.login{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(120% 80% at 50% 0%, rgba(212,169,78,.12), transparent 60%)}
+.login-box{width:100%;max-width:380px}
+.login h1{font-size:clamp(2rem,7vw,2.8rem);font-weight:900;text-transform:uppercase;
+  line-height:.98;letter-spacing:-.02em;margin:0 0 6px}
+.login p{color:var(--ash);font-size:13.5px;margin:0 0 28px}
+.gild{background:linear-gradient(168deg,var(--gold-hi) 4%,var(--gold) 44%,var(--gold-deep) 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--ash);font-weight:700;margin:16px 0 6px}
+input{width:100%;background:var(--pitch);border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;color:var(--chalk);font-size:14px;font-family:inherit}
+input:focus{outline:none;border-color:var(--gold)}
+.btn{width:100%;margin-top:22px;background:linear-gradient(168deg,var(--gold-hi),var(--gold) 60%,var(--gold-deep));
+  color:#1A1304;border:none;border-radius:10px;padding:13px;font-size:14px;font-weight:800;
+  font-family:inherit;cursor:pointer;text-transform:uppercase;letter-spacing:.06em}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.erro{margin-top:14px;color:var(--red);font-size:13px;line-height:1.5}
+
+/* ---------- app ---------- */
+header{border-bottom:1px solid var(--line);padding:16px 22px;display:flex;
+  align-items:center;gap:14px;flex-wrap:wrap;background:rgba(11,31,21,.5)}
+.brand{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.22em;color:var(--gold)}
+.quem{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12.5px;color:var(--ash)}
+.quem b{color:var(--chalk);font-weight:700}
+.sair{background:none;border:1px solid var(--line);color:var(--ash);border-radius:8px;
+  padding:7px 12px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.sair:hover{border-color:var(--red);color:var(--red)}
+main{padding:26px 22px 60px;max-width:1180px;margin:0 auto}
+.tabs{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap}
+.tab{background:none;border:1px solid var(--line);color:var(--ash);border-radius:100px;
+  padding:8px 18px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.tab:hover{color:var(--chalk)}
+.tab.on{background:var(--gold);border-color:var(--gold);color:#1A1304}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:1px;color:var(--ash);
+  font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:14px}
+h2::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* ---------- contagem ---------- */
+.pre{border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:22px;
+  background:linear-gradient(178deg,rgba(30,58,42,.4),rgba(6,20,13,.4))}
+.pre .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--ash);font-weight:700}
+.pre .v{font-size:clamp(1.4rem,4vw,2rem);font-weight:900;margin-top:8px}
+
+/* ---------- placar ---------- */
+.placar{display:grid;gap:14px}
+.card{border:1px solid var(--line);border-radius:16px;padding:20px;
+  background:linear-gradient(178deg,rgba(20,44,31,.55),rgba(6,20,13,.6));position:relative}
+.card.eu{border-color:var(--gold)}
+.card.p1{border-color:rgba(212,169,78,.7)}
+.card-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pos{font-size:2rem;font-weight:900;line-height:1;min-width:52px;
+  background:linear-gradient(168deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.card-nome{font-size:1.25rem;font-weight:900;text-transform:uppercase;letter-spacing:-.01em}
+.selo{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;
+  padding:4px 10px;border-radius:100px;background:var(--gold);color:#1A1304}
+.nums{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-top:18px}
+.num{background:rgba(4,18,12,.5);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+.num .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ash);font-weight:700}
+.num .v{font-size:1.4rem;font-weight:900;margin-top:6px;font-variant-numeric:tabular-nums}
+.num.gol .v{background:linear-gradient(168deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- funil ---------- */
+.funil{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+.fase{border:1px solid var(--line);border-radius:13px;padding:16px;background:rgba(11,31,21,.55)}
+.fase .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ash);font-weight:700}
+.fase .v{font-size:1.7rem;font-weight:900;margin-top:7px;font-variant-numeric:tabular-nums}
+.fase.gol{border-color:rgba(212,169,78,.5)}
+.fase.gol .v{background:linear-gradient(168deg,var(--gold-hi),var(--gold) 55%,var(--gold-deep));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ---------- tabela ---------- */
+.barra-f{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.barra-f input,.barra-f select{flex:1;min-width:150px;background:var(--pitch);
+  border:1px solid var(--line);border-radius:9px;padding:10px 12px;color:var(--chalk);
+  font-size:13px;font-family:inherit}
+.barra-f input:focus,.barra-f select:focus{outline:none;border-color:var(--gold)}
+.painel{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--surface)}
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ash);font-weight:700;
+  text-align:left;padding:11px 15px;border-bottom:1px solid var(--line);background:rgba(4,18,12,.5)}
+td{padding:11px 15px;border-bottom:1px solid var(--line);font-size:13px}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-2)}
+.pill{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  padding:4px 9px;border-radius:100px;white-space:nowrap}
+.pill.livre{background:rgba(147,167,154,.15);color:var(--ash)}
+.pill.meu{background:rgba(212,169,78,.18);color:var(--gold-hi)}
+.pill.outro{background:rgba(4,18,12,.7);color:#5E7266}
+.vazio{padding:34px;text-align:center;color:var(--ash);font-size:13.5px}
+.dica{font-size:11.5px;color:#6F8478;margin-top:10px;line-height:1.5}
+.load{padding:34px;text-align:center;color:var(--ash);font-size:13px}
+
+@media (max-width:760px){
+  main{padding:20px 14px 50px}
+  .nums,.funil{grid-template-columns:1fr 1fr}
+  .painel{overflow-x:auto}
+  table{min-width:620px}
+  header{padding:14px}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="login" id="telaLogin">
+  <div class="login-box">
+    <h1>Rumo ao<br><span class="gild">Topo</span></h1>
+    <p>Placar da campanha comercial</p>
+    <label for="email">E-mail</label>
+    <input id="email" type="email" autocomplete="username" placeholder="seu@email.com">
+    <label for="senha">Senha</label>
+    <input id="senha" type="password" autocomplete="current-password" placeholder="••••••••">
+    <button class="btn" id="btnEntrar">Entrar em campo</button>
+    <div class="erro hidden" id="loginErro"></div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="hidden" id="telaApp">
+  <header>
+    <span class="brand">Seja Livre · Rumo ao Topo</span>
+    <div class="quem">
+      <span><b id="meuNome"></b> · <span id="meuPapel"></span></span>
+      <button class="sair" id="btnSair">Sair</button>
+    </div>
+  </header>
+  <main>
+    <div class="pre" id="preJogo"></div>
+    <div class="tabs">
+      <button class="tab on" data-aba="placar">Placar</button>
+      <button class="tab" data-aba="leads">Leads</button>
+      <button class="tab hidden" data-aba="orfas" id="tabOrfas">Conferir</button>
+    </div>
+    <div id="conteudo"><div class="load">Carregando…</div></div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = "https://hdgacffmwigdscrtctia.supabase.co";
+const SUPABASE_KEY = "sb_publishable_8-g_Xdbxmb52CnPVhOpkBw_BmJk2M1a";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const el = id => document.getElementById(id);
+const nf = n => (n == null ? "—" : Number(n).toLocaleString("pt-BR"));
+const fmtData = d => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
+const fmtDataHora = d => !d ? "—"
+  : new Date(d).toLocaleDateString("pt-BR") + " " +
+    new Date(d).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
+
+const INICIO = new Date("2026-09-14T09:00:00-03:00");
+const FIM_1T = new Date("2026-11-16T23:59:59-03:00");
+const FIM_2T = new Date("2026-12-20T23:59:59-03:00");
+
+let EU = null, ABA = "placar";
+
+// ---------------- login ----------------
+el("btnEntrar").addEventListener("click", entrar);
+["email","senha"].forEach(id =>
+  el(id).addEventListener("keydown", e => { if(e.key === "Enter") entrar(); }));
+
+async function entrar(){
+  const email = el("email").value.trim();
+  const senha = el("senha").value;
+  if(!email || !senha){ return mostrarErro("Preencha e-mail e senha."); }
+  el("btnEntrar").disabled = true;
+  const { error } = await sb.auth.signInWithPassword({ email, password: senha });
+  el("btnEntrar").disabled = false;
+  if(error){
+    return mostrarErro(error.message === "Invalid login credentials"
+      ? "E-mail ou senha não conferem."
+      : error.message);
+  }
+  boot();
+}
+function mostrarErro(msg){
+  el("loginErro").textContent = msg;
+  el("loginErro").classList.remove("hidden");
+}
+
+el("btnSair").addEventListener("click", async () => {
+  await sb.auth.signOut();
+  location.reload();
+});
+
+// ---------------- boot ----------------
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ el("telaLogin").classList.remove("hidden"); el("telaApp").classList.add("hidden"); return; }
+
+  const { data, error } = await sb.rpc("fn_camp_quem");
+  const eu = (data && data[0]) || null;
+  if(error || !eu){
+    await sb.auth.signOut();
+    el("telaLogin").classList.remove("hidden");
+    return mostrarErro("Seu login existe, mas não está cadastrado na campanha. Fale com a Letícia.");
+  }
+  EU = eu;
+  el("telaLogin").classList.add("hidden");
+  el("telaApp").classList.remove("hidden");
+  el("meuNome").textContent = eu.nome;
+  el("meuPapel").textContent = eu.papel === "gerencia" ? "Gerência" : "Em campo";
+  if(eu.papel === "gerencia") el("tabOrfas").classList.remove("hidden");
+
+  pintarPreJogo();
+  document.querySelectorAll(".tab").forEach(b =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(x => x.classList.remove("on"));
+      b.classList.add("on"); ABA = b.dataset.aba; render();
+    }));
+  render();
+}
+
+function pintarPreJogo(){
+  const agora = new Date();
+  let k, v;
+  if(agora < INICIO){
+    const dias = Math.ceil((INICIO - agora) / 86400000);
+    k = "Apito inicial"; v = dias === 1 ? "Amanhã" : "Em " + dias + " dias · 14/09";
+  } else if(agora <= FIM_1T){
+    const dias = Math.ceil((FIM_1T - agora) / 86400000);
+    k = "1º tempo · disputa do iPhone";
+    v = dias + (dias === 1 ? " dia restante" : " dias restantes") + " · até 16/11";
+  } else if(agora <= FIM_2T){
+    const dias = Math.ceil((FIM_2T - agora) / 86400000);
+    k = "2º tempo · meta coletiva";
+    v = dias + (dias === 1 ? " dia restante" : " dias restantes") + " · até 20/12";
+  } else {
+    k = "Apito final"; v = "Campanha encerrada";
+  }
+  el("preJogo").innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+}
+
+function render(){
+  el("conteudo").innerHTML = '<div class="load">Carregando…</div>';
+  if(ABA === "placar") verPlacar();
+  else if(ABA === "leads") verLeads();
+  else verOrfas();
+}
+
+// ---------------- placar ----------------
+async function verPlacar(){
+  const [{ data:placar, error:e1 }, { data:resumo, error:e2 }] =
+    await Promise.all([ sb.rpc("fn_camp_placar"), sb.rpc("fn_camp_resumo") ]);
+  if(e1 || e2) return falhou(e1 || e2);
+
+  const r = {}; (resumo || []).forEach(x => r[x.etapa] = Number(x.quantos));
+  const funil = `
+    <h2>Funil ${EU.papel === "gerencia" ? "da campanha" : "do seu trabalho"}</h2>
+    <div class="funil">
+      <div class="fase"><div class="k">${EU.papel==="gerencia"?"Não tocados":"Leads livres"}</div><div class="v">${nf(r["1 - nao tocado"] || 0)}</div></div>
+      <div class="fase"><div class="k">Tocados</div><div class="v">${nf(r["2 - tocado"] || 0)}</div></div>
+      <div class="fase"><div class="k">Abriram conta</div><div class="v">${nf(r["3 - abriu conta"] || 0)}</div></div>
+      <div class="fase gol"><div class="k">Abriram e operaram</div><div class="v">${nf(r["4 - abriu e operou"] || 0)}</div></div>
+    </div>`;
+
+  if(!placar || !placar.length){
+    el("conteudo").innerHTML = funil + '<div class="vazio">O placar abre quando o jogo começar.</div>';
+    return;
+  }
+
+  const cards = placar.map(p => `
+    <div class="card ${p.eu ? "eu" : ""} ${p.posicao === 1 ? "p1" : ""}">
+      <div class="card-top">
+        <div class="pos">${p.posicao}º</div>
+        <div>
+          <div class="card-nome">${p.nome_curto || p.assessor}</div>
+          <div style="font-size:11.5px;color:var(--ash);margin-top:3px">
+            ${p.eu ? "Você" : p.assessor} · ${p.posicao}º de ${p.total_no_ranking}
+          </div>
+        </div>
+        ${p.posicao === 1 && p.contas_ativas > 0 ? '<span class="selo">Levando o iPhone</span>' : ""}
+      </div>
+      <div class="nums">
+        <div class="num"><div class="k">Leads tocados</div><div class="v">${nf(p.leads_tocados)}</div></div>
+        <div class="num"><div class="k">Contas abertas</div><div class="v">${nf(p.contas_abertas)}</div></div>
+        <div class="num gol"><div class="k">Contas ativas</div><div class="v">${nf(p.contas_ativas)}</div></div>
+        <div class="num"><div class="k">Contratos BM&F</div><div class="v">${nf(p.contratos)}</div></div>
+      </div>
+    </div>`).join("");
+
+  el("conteudo").innerHTML = funil + `
+    <h2>${EU.papel === "gerencia" ? "Placar dos três" : "Sua posição"}</h2>
+    <div class="placar">${cards}</div>
+    <div class="dica">Conta ativa é conta aberta na barra da campanha que já operou BM&F.
+    É ela que decide o iPhone; os contratos entram no desempate.</div>`;
+}
+
+// ---------------- leads ----------------
+let fLeads = { etapa:"", busca:"" };
+async function verLeads(){
+  el("conteudo").innerHTML = `
+    <h2>Leads da campanha</h2>
+    <div class="barra-f">
+      <input id="lBusca" placeholder="Buscar por nome ou telefone…" value="${fLeads.busca}">
+      <select id="lEtapa" style="flex:0 0 210px">
+        <option value="">Todas as etapas</option>
+        <option value="1 - nao tocado">Não tocados</option>
+        <option value="2 - tocado">Tocados</option>
+        <option value="3 - abriu conta">Abriram conta</option>
+        <option value="4 - abriu e operou">Abriram e operaram</option>
+      </select>
+    </div>
+    <div class="painel" id="lLista"><div class="load">Carregando…</div></div>
+    <div class="dica">Mostrando até 500 por vez. Use a busca ou o filtro para chegar ao que procura.</div>`;
+  el("lEtapa").value = fLeads.etapa;
+  el("lBusca").addEventListener("input", e => { fLeads.busca = e.target.value; debounce(carregarLeads); });
+  el("lEtapa").addEventListener("change", e => { fLeads.etapa = e.target.value; carregarLeads(); });
+  carregarLeads();
+}
+
+let timer;
+function debounce(fn){ clearTimeout(timer); timer = setTimeout(fn, 350); }
+
+async function carregarLeads(){
+  const { data, error } = await sb.rpc("fn_camp_leads", {
+    p_etapa: fLeads.etapa || null,
+    p_busca: fLeads.busca || null
+  });
+  if(error) return falhou(error, "lLista");
+  if(!data || !data.length){
+    el("lLista").innerHTML = '<div class="vazio">Nenhum lead com esses filtros.</div>';
+    return;
+  }
+  const ger = EU.papel === "gerencia";
+  el("lLista").innerHTML = `<table><thead><tr>
+      <th>Lead</th><th>Telefone</th><th>${ger ? "Dono" : "Situação"}</th>
+      <th>1º contato</th><th>Conta</th><th>Contratos</th>
+    </tr></thead><tbody>` +
+    data.map(l => {
+      const cls = l.situacao === "livre" ? "livre" : (l.meu ? "meu" : "outro");
+      return `<tr>
+        <td style="font-weight:600">${l.nome || "—"}</td>
+        <td style="color:var(--ash)">${l.telefone}</td>
+        <td><span class="pill ${cls}">${l.situacao}</span></td>
+        <td style="color:var(--ash)">${fmtDataHora(l.primeiro_contato)}</td>
+        <td style="color:var(--ash)">${l.sinacor ? l.sinacor + " · " + fmtData(l.data_cadastro) : "—"}</td>
+        <td>${l.contratos_bmf > 0 ? nf(l.contratos_bmf) : "—"}</td>
+      </tr>`;
+    }).join("") + "</tbody></table>";
+}
+
+// ---------------- contas a conferir ----------------
+async function verOrfas(){
+  const { data, error } = await sb.from("vw_campanha_orfas").select("*");
+  if(error) return falhou(error);
+  const linhas = data || [];
+  el("conteudo").innerHTML = `
+    <h2>Contas na barra da campanha sem lead correspondente</h2>
+    <div class="painel">` +
+    (!linhas.length
+      ? '<div class="vazio">Nenhuma conta órfã. Tudo que abriu casou com um lead da lista.</div>'
+      : `<table><thead><tr>
+          <th>Cliente</th><th>Sinacor</th><th>Telefone</th><th>Cadastro</th><th>Contratos BM&F</th>
+        </tr></thead><tbody>` +
+        linhas.map(c => `<tr>
+          <td style="font-weight:600">${c.nome}</td>
+          <td style="color:var(--ash)">${c.sinacor || "—"}</td>
+          <td style="color:var(--ash)">${c.telefone || "—"}</td>
+          <td style="color:var(--ash)">${fmtData(c.data_cadastro)}</td>
+          <td>${c.contratos_bmf > 0 ? nf(c.contratos_bmf) : "—"}</td>
+        </tr>`).join("") + "</tbody></table>") + `</div>
+    <div class="dica">Estas contas nasceram na barra da campanha mas o telefone não bate com
+    nenhum lead da lista — provavelmente o cliente abriu com outro número. São gols sem dono:
+    alguém precisa olhar e decidir de quem é o crédito.</div>`;
+}
+
+function falhou(e, alvo){
+  const msg = (e && (e.message || e.hint)) || "Erro desconhecido";
+  el(alvo || "conteudo").innerHTML =
+    `<div class="vazio">Não consegui carregar.<br>
+     <span style="font-size:11.5px;color:#6F8478">${msg}</span></div>`;
+}
+
+sb.auth.onAuthStateChange((evt) => { if(evt === "SIGNED_OUT") location.reload(); });
+boot();
+</script>
+</body>
+</html>
