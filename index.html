@@ -277,6 +277,18 @@ tbody tr:hover{background:var(--surface-2)}
 .dica{font-size:11.5px;color:#6F8478;margin-top:12px;line-height:1.55}
 .load{padding:34px;text-align:center;color:var(--ash);font-size:13px}
 
+
+/* ---------- divisões da carteira ---------- */
+.divis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.div-bx{background:rgba(11,31,21,.6);border:1px solid var(--line);border-radius:13px;
+  padding:15px 12px;cursor:pointer;font-family:inherit;text-align:left;
+  display:flex;flex-direction:column;gap:6px;transition:border-color .22s,background .22s}
+.div-bx:hover{border-color:rgba(212,169,78,.5)}
+.div-bx.on{border-color:var(--tomE,var(--gold));background:rgba(20,44,31,.85)}
+.div-bx .v{font-size:1.5rem;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.div-bx .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--ash);font-weight:700}
+@media (max-width:860px){ .divis{grid-template-columns:1fr 1fr;gap:8px} }
+
 /* ---------- página do assessor ---------- */
 .voltar{background:none;border:1px solid var(--line);color:var(--ash);border-radius:100px;
   padding:8px 17px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:22px}
@@ -605,15 +617,15 @@ async function verPlacar(){
       <div class="trilho"><i style="width:${pk}%"></i></div>
     </div>` : "";
 
-  const livres = r["1 - nao tocado"] || 0;
+  const livres = r["1 - nao falei"] || 0;
   const preHtml = comecou ? "" : `
     <div class="pre">
       <div class="pre-bx">
-        <div class="k">${ger ? "Base da campanha" : "Leads à sua espera"}</div>
+        <div class="k">${ger ? "Base da campanha" : "Sua carteira"}</div>
         <div class="big gild">${nf(livres)}</div>
         <div class="txt">${ger
-          ? "Leads limpos, sem clientes da casa e sem repetição. A lista é a mesma para os três: <b>quem chamar primeiro fica com o lead</b>."
-          : "A lista é a mesma para os três. <b>Quem chamar primeiro fica com o lead</b> — e ele é seu até o fim da campanha."}</div>
+          ? "Leads limpos, sem clientes da casa e sem repetição, divididos igualmente entre os três."
+          : "Estes leads são <b>seus</b> até o fim da campanha. Use as divisões na aba Leads para saber com quem você ainda não falou."}</div>
       </div>
       <div class="premio">
         <div class="bg"></div>
@@ -632,8 +644,8 @@ async function verPlacar(){
     ${metaHtml}
     <h2>${ger ? "Funil da campanha" : "Seu funil"}</h2>
     <div class="funil">
-      <div class="fase"><div class="k">${ger ? "Não tocados" : "Leads livres"}</div><div class="v">${nf(r["1 - nao tocado"] || 0)}</div></div>
-      <div class="fase"><div class="k">Tocados</div><div class="v">${nf(r["2 - tocado"] || 0)}</div></div>
+      <div class="fase"><div class="k">${ger ? "Não falados" : "Falta falar"}</div><div class="v">${nf(r["1 - nao falei"] || 0)}</div></div>
+      <div class="fase"><div class="k">Já falados</div><div class="v">${nf(r["2 - falei"] || 0)}</div></div>
       <div class="fase"><div class="k">Abriram conta</div><div class="v">${nf(r["3 - abriu conta"] || 0)}</div></div>
       <div class="fase gol"><div class="k">Abriram e operaram</div><div class="v">${nf(r["4 - abriu e operou"] || 0)}</div></div>
     </div>
@@ -642,27 +654,53 @@ async function verPlacar(){
 }
 
 // ---------------- leads ----------------
+// Cada comercial tem a própria carteira, entregue no início da campanha.
+// As quatro divisões existem para ele se organizar: quem falta falar,
+// quem já falou, quem abriu conta e quem já operou.
+const ETAPAS = [
+  { k:"1 - nao falei",       t:"Não falei",     c:"var(--ash)" },
+  { k:"2 - falei",           t:"Já falei",      c:"var(--sky)" },
+  { k:"3 - abriu conta",     t:"Abriu conta",   c:"var(--emerald)" },
+  { k:"4 - abriu e operou",  t:"Abriu e operou",c:"var(--gold)" }
+];
 let fLeads = { etapa:"", busca:"" };
-function verLeads(){
+
+async function verLeads(){
+  const ger = EU.papel === "gerencia";
   el("conteudo").innerHTML = `
-    <h2>Leads da campanha</h2>
+    <h2>${ger ? "Leads da campanha" : "Sua carteira"}</h2>
+    <div class="divis" id="lDivis"></div>
     <div class="barra-f">
       <input id="lBusca" placeholder="Buscar por nome ou telefone…" value="${fLeads.busca}">
-      <select id="lEtapa" style="flex:0 0 210px">
-        <option value="">Todas as etapas</option>
-        <option value="1 - nao tocado">Não tocados</option>
-        <option value="2 - tocado">Tocados</option>
-        <option value="3 - abriu conta">Abriram conta</option>
-        <option value="4 - abriu e operou">Abriram e operaram</option>
-      </select>
     </div>
     <div class="painel" id="lLista"><div class="load">Carregando…</div></div>
-    <div class="dica">Mostrando até 500 por vez. Use a busca ou o filtro para chegar ao que procura.</div>`;
-  el("lEtapa").value = fLeads.etapa;
+    <div class="dica">Mostrando até 500 por vez. Use as divisões acima ou a busca para chegar ao que procura.</div>`;
   el("lBusca").addEventListener("input", e => { fLeads.busca = e.target.value; debounce(carregarLeads); });
-  el("lEtapa").addEventListener("change", e => { fLeads.etapa = e.target.value; carregarLeads(); });
+  pintarDivisoes();
   carregarLeads();
 }
+
+async function pintarDivisoes(){
+  const { data } = await sb.rpc("fn_camp_resumo");
+  const r = {}; (data || []).forEach(x => r[x.etapa] = Number(x.quantos));
+  const total = Object.values(r).reduce((s,n) => s + n, 0);
+  el("lDivis").innerHTML =
+    `<button class="div-bx ${fLeads.etapa === "" ? "on" : ""}" onclick="filtrarEtapa('')">
+       <span class="v">${nf(total)}</span><span class="k">Carteira toda</span></button>` +
+    ETAPAS.map(e => `
+      <button class="div-bx ${fLeads.etapa === e.k ? "on" : ""}" style="--tomE:${e.c}"
+              onclick="filtrarEtapa('${e.k}')">
+        <span class="v" style="color:${e.c}">${nf(r[e.k] || 0)}</span>
+        <span class="k">${e.t}</span>
+      </button>`).join("");
+}
+
+function filtrarEtapa(k){
+  fLeads.etapa = k;
+  pintarDivisoes();
+  carregarLeads();
+}
+
 let timer;
 function debounce(fn){ clearTimeout(timer); timer = setTimeout(fn, 350); }
 
@@ -671,29 +709,31 @@ async function carregarLeads(){
     p_etapa: fLeads.etapa || null, p_busca: fLeads.busca || null });
   if(error) return falhou(error, "lLista");
   if(!data || !data.length){
-    el("lLista").innerHTML = '<div class="vazio">Nenhum lead com esses filtros.</div>'; return;
+    el("lLista").innerHTML = '<div class="vazio">Nenhum lead nesta divisão.</div>'; return;
   }
   const ger = EU.papel === "gerencia";
   el("lLista").innerHTML = `<table><thead><tr>
-      <th>Lead</th><th>Telefone</th><th>${ger ? "Dono" : "Situação"}</th>
-      <th>1º contato</th><th>Conta</th><th>Contratos</th>${ger ? "" : "<th></th>"}
+      <th>Lead</th><th>Telefone</th>${ger ? "<th>Carteira</th>" : ""}
+      <th>Situação</th><th>1º contato</th><th>Conta</th><th>Contratos</th>${ger ? "" : "<th></th>"}
     </tr></thead><tbody>` +
     data.map(l => {
-      const cls = l.situacao === "livre" ? "livre" : (l.meu ? "meu" : "outro");
+      const e = ETAPAS.find(x => x.k === l.etapa) || ETAPAS[0];
       return `<tr>
         <td style="font-weight:600">${l.nome || "—"}</td>
         <td style="color:var(--ash)">${l.telefone}</td>
-        <td><span class="pill ${cls}">${l.situacao}</span></td>
-        <td style="color:var(--ash)">${fmtDataHora(l.primeiro_contato)}</td>
+        ${ger ? `<td style="color:var(--ash)">${l.dono || "—"}</td>` : ""}
+        <td><span class="pill" style="background:${e.c}22;color:${e.c}">${e.t}</span></td>
+        <td style="color:var(--ash)">${l.falado
+          ? fmtDataHora(l.primeiro_contato) + (l.origem === "ligacao" ? " · ligação" : " · RD")
+          : "—"}</td>
         <td style="color:var(--ash)">${l.sinacor ? l.sinacor + " · " + fmtData(l.data_cadastro) : "—"}</td>
-        <td>${l.contratos_bmf > 0 ? nf(l.contratos_bmf) : "—"}</td>
-        ${ger ? "" : `<td>${l.situacao === "livre"
+        <td>${l.operou ? nf(l.contratos_bmf) : "—"}</td>
+        ${ger ? "" : `<td>${!l.falado
           ? `<button class="lig" onclick="abrirLigacao(${l.id}, ${JSON.stringify(l.nome || "").replace(/"/g,"&quot;")})">Liguei</button>`
           : ""}</td>`}
       </tr>`;
     }).join("") + "</tbody></table>";
 }
-
 
 // ---------------- registrar ligação ----------------
 // O lead pode ser trabalhado por telefone, fora do RD. Aqui ele entra na base
