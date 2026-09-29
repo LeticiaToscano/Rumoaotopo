@@ -462,7 +462,12 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const el = id => document.getElementById(id);
 const nf = n => (n == null ? "—" : Number(n).toLocaleString("pt-BR"));
-const fmtData = d => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
+const fmtData = d => {
+  if(!d) return "—";
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(d));
+  if(m) return m[3] + "/" + m[2] + "/" + m[1];
+  return new Date(d).toLocaleDateString("pt-BR");
+};
 const fmtDataHora = d => !d ? "—"
   : new Date(d).toLocaleDateString("pt-BR") + " " +
     new Date(d).toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"});
@@ -731,7 +736,7 @@ async function carregarLeads(){
         ${ger ? `<td style="color:var(--ash)">${l.dono || "—"}</td>` : ""}
         <td><span class="pill" style="background:${e.c}22;color:${e.c}">${e.t}</span></td>
         <td style="color:var(--ash)">${l.falado
-          ? fmtDataHora(l.primeiro_contato) + (l.origem === "ligacao" ? " · ligação" : " · RD")
+          ? fmtDataHora(l.primeiro_contato) + (l.origem === "ligacao" ? " · ligação" : l.origem === "gerencia" ? " · gerência" : " · RD")
           : "—"}</td>
         <td style="color:var(--ash)">${l.sinacor ? l.sinacor + " · " + fmtData(l.data_cadastro) : "—"}</td>
         <td>${l.operou ? nf(l.contratos_bmf) : "—"}</td>
@@ -778,13 +783,14 @@ async function verOrfas(){
   const { data, error } = await sb.rpc("fn_camp_orfas");
   if(error) return falhou(error);
   const linhas = data || [];
+  const opcoes = Object.keys(TIME).map(a => `<option value="${a}">${a}</option>`).join("");
   el("conteudo").innerHTML = `
     <h2>Contas na barra da campanha sem lead correspondente</h2>
     <div class="painel">` +
     (!linhas.length
       ? '<div class="vazio">Nenhuma conta órfã.<br>Tudo que abriu casou com um lead da lista.</div>'
       : `<table><thead><tr>
-          <th>Cliente</th><th>Sinacor</th><th>Telefone</th><th>Cadastro</th><th>Contratos BM&F</th>
+          <th>Cliente</th><th>Sinacor</th><th>Telefone</th><th>Cadastro</th><th>Contratos BM&F</th><th>Atribuir a</th>
         </tr></thead><tbody>` +
         linhas.map(c => `<tr>
           <td style="font-weight:600">${c.nome}</td>
@@ -792,10 +798,38 @@ async function verOrfas(){
           <td style="color:var(--ash)">${c.telefone || "—"}</td>
           <td style="color:var(--ash)">${fmtData(c.data_cadastro)}</td>
           <td>${c.contratos_bmf > 0 ? nf(c.contratos_bmf) : "—"}</td>
+          <td><div style="display:flex;gap:8px;align-items:center">
+            <select id="atr-${c.cliente_id}" style="width:auto;padding:7px 10px;font-size:12.5px">
+              <option value="">Escolha…</option>${opcoes}
+            </select>
+            <button class="lig" onclick="atribuirConta('${c.cliente_id}', this)">Atribuir</button>
+          </div></td>
         </tr>`).join("") + "</tbody></table>") + `</div>
-    <div class="dica">Estas contas nasceram na barra da campanha mas o telefone não bate com
-    nenhum lead da lista — provavelmente o cliente abriu com outro número. São gols sem dono:
-    alguém precisa olhar e decidir de quem é o crédito.</div>`;
+    <div class="modal-erro hidden" id="atrErro"></div>
+    <div class="dica">Estas contas nasceram na barra da campanha, mas o telefone não bate com
+    nenhum lead da lista. Se você sabe quem trouxe o cliente, escolha o assessor e clique em
+    Atribuir: a conta entra no placar dele e o registro guarda quem atribuiu e quando.</div>`;
+}
+
+async function atribuirConta(clienteId, botao){
+  const assessor = el("atr-" + clienteId).value;
+  const erro = el("atrErro");
+  erro.classList.add("hidden");
+  if(!assessor){
+    erro.textContent = "Escolha o assessor antes de atribuir.";
+    erro.classList.remove("hidden");
+    return;
+  }
+  if(!confirm("Atribuir esta conta a " + assessor + "? Ela sai daqui e entra no placar dele.")) return;
+  botao.disabled = true;
+  const { data, error } = await sb.rpc("fn_camp_atribuir", { p_cliente_id: clienteId, p_assessor: assessor });
+  if(error || !data || data.ok !== true){
+    erro.textContent = (error && error.message) || "Não consegui atribuir.";
+    erro.classList.remove("hidden");
+    botao.disabled = false;
+    return;
+  }
+  verOrfas();
 }
 
 function falhou(e, alvo){
