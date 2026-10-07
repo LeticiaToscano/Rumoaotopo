@@ -805,10 +805,13 @@ async function salvarLigacao(){
 
 // ---------------- contas a conferir ----------------
 async function verOrfas(){
-  const { data, error } = await sb.rpc("fn_camp_orfas");
+  const [{ data, error }, { data:geral }] =
+    await Promise.all([ sb.rpc("fn_camp_orfas"), sb.rpc("fn_camp_so_geral_lista") ]);
   if(error) return falhou(error);
-  const linhas = data || [];
-  const opcoes = Object.keys(TIME).map(a => `<option value="${a}">${a}</option>`).join("");
+  const soGeral = new Set((geral || []).map(x => typeof x === "string" ? x : Object.values(x)[0]));
+  const linhas = (data || []).filter(c => !soGeral.has(c.cliente_id));
+  const opcoes = Object.keys(TIME).map(a => `<option value="${a}">${a}</option>`).join("")
+    + `<option value="__geral">Ninguém · só campanha geral</option>`;
   el("conteudo").innerHTML = `
     <h2>Contas na barra da campanha sem lead correspondente</h2>
     <div class="painel">` +
@@ -833,7 +836,9 @@ async function verOrfas(){
     <div class="modal-erro hidden" id="atrErro"></div>
     <div class="dica">Estas contas nasceram na barra da campanha, mas o telefone não bate com
     nenhum lead da lista. Se você sabe quem trouxe o cliente, escolha o assessor e clique em
-    Atribuir: a conta entra no placar dele e o registro guarda quem atribuiu e quando.</div>`;
+    Atribuir: a conta entra no placar dele e o registro guarda quem atribuiu e quando.
+    Se não é de ninguém, escolha "Ninguém · só campanha geral": a conta sai daqui e os
+    contratos seguem somando só na meta coletiva.</div>`;
 }
 
 async function atribuirConta(clienteId, botao){
@@ -845,9 +850,14 @@ async function atribuirConta(clienteId, botao){
     erro.classList.remove("hidden");
     return;
   }
-  if(!confirm("Atribuir esta conta a " + assessor + "? Ela sai daqui e entra no placar dele.")) return;
+  const soGeral = assessor === "__geral";
+  if(!confirm(soGeral
+      ? "Esta conta não vai pontuar para nenhum assessor, só para a meta coletiva. Confirmar?"
+      : "Atribuir esta conta a " + assessor + "? Ela sai daqui e entra no placar dele.")) return;
   botao.disabled = true;
-  const { data, error } = await sb.rpc("fn_camp_atribuir", { p_cliente_id: clienteId, p_assessor: assessor });
+  const { data, error } = soGeral
+    ? await sb.rpc("fn_camp_so_geral", { p_cliente_id: clienteId })
+    : await sb.rpc("fn_camp_atribuir", { p_cliente_id: clienteId, p_assessor: assessor });
   if(error || !data || data.ok !== true){
     erro.textContent = (error && error.message) || "Não consegui atribuir.";
     erro.classList.remove("hidden");
@@ -1025,3 +1035,4 @@ boot();
 </script>
 </body>
 </html>
+
