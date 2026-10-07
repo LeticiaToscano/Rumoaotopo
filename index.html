@@ -569,9 +569,10 @@ function render(){
 
 // ---------------- placar ----------------
 async function verPlacar(){
-  const [{ data:placar, error:e1 }, { data:resumo, error:e2 }] =
-    await Promise.all([ sb.rpc("fn_camp_placar"), sb.rpc("fn_camp_resumo") ]);
+  const [{ data:placar, error:e1 }, { data:resumo, error:e2 }, { data:colet }] =
+    await Promise.all([ sb.rpc("fn_camp_placar"), sb.rpc("fn_camp_resumo"), sb.rpc("fn_camp_coletiva") ]);
   if(e1 || e2) return falhou(e1 || e2);
+  const C = (colet && colet[0]) || { contas_ativas:0, contratos_bmf:0 };
 
   const r = {}; (resumo || []).forEach(x => r[x.etapa] = Number(x.quantos));
   const lista = placar || [];
@@ -612,12 +613,13 @@ async function verPlacar(){
   }).join("");
 
   // meta coletiva: só a gerência enxerga o total do time
-  const totContas = (r["4 - abriu e operou"] || 0);
-  const totContratos = lista.reduce((s,p) => s + Number(p.contratos || 0), 0);
+  // 2º tempo conta a barra PRISCILA ALVES 2 inteira, não só os leads dos meninos
+  const totContas = Number(C.contas_ativas || 0);
+  const totContratos = Number(C.contratos_bmf || 0);
   const pc = Math.min(100, totContas / META_CONTAS * 100);
   const pk = Math.min(100, totContratos / META_CONTRATOS * 100);
   const metaHtml = ger ? `
-    <h2>Meta coletiva · basta bater uma das duas</h2>
+    <h2>Meta coletiva · barra inteira · basta bater uma das duas</h2>
     <div class="meta a">
       <div class="meta-l"><span class="k">Meta A · contas ativas</span>
         <span class="v"><b>${nf(totContas)}</b> de ${nf(META_CONTAS)}</span></div>
