@@ -569,8 +569,9 @@ function render(){
 
 // ---------------- placar ----------------
 async function verPlacar(){
-  const [{ data:placar, error:e1 }, { data:resumo, error:e2 }, { data:colet }] =
-    await Promise.all([ sb.rpc("fn_camp_placar"), sb.rpc("fn_camp_resumo"), sb.rpc("fn_camp_coletiva") ]);
+  const [{ data:placar, error:e1 }, { data:resumo, error:e2 }, { data:colet }, { data:semDono }] =
+    await Promise.all([ sb.rpc("fn_camp_placar"), sb.rpc("fn_camp_resumo"), sb.rpc("fn_camp_coletiva"),
+      EU.papel === "gerencia" ? sb.rpc("fn_camp_sem_dono") : Promise.resolve({ data: [] }) ]);
   if(e1 || e2) return falhou(e1 || e2);
   const C = (colet && colet[0]) || { contas_ativas:0, contratos_bmf:0 };
 
@@ -631,6 +632,27 @@ async function verPlacar(){
       <div class="trilho"><i style="width:${pk}%"></i></div>
     </div>` : "";
 
+  // clientes da barra que operam BM&F e não pontuam para nenhum dos meninos
+  const SD = semDono || [];
+  const semDonoHtml = !ger ? "" : `
+    <h2>Operando sem assessor · ${nf(SD.length)} · ${nf(SD.reduce((s,c) => s + Number(c.contratos_bmf || 0), 0))} contratos</h2>
+    <div class="painel">` + (!SD.length
+      ? '<div class="vazio">Todo cliente da barra que operou está com um dos meninos.</div>'
+      : `<table><thead><tr>
+          <th>Cliente</th><th>Sinacor</th><th>Telefone</th><th>Cadastro</th><th>Contratos BM&F</th><th>Última operação</th><th>Situação</th>
+        </tr></thead><tbody>` +
+        SD.map(c => `<tr>
+          <td style="font-weight:600">${c.nome || "—"}</td>
+          <td style="color:var(--ash)">${c.sinacor || "—"}</td>
+          <td style="color:var(--ash)">${c.telefone || "—"}</td>
+          <td style="color:var(--ash)">${fmtData(c.data_cadastro)}</td>
+          <td style="font-weight:700">${nf(c.contratos_bmf)}</td>
+          <td style="color:var(--ash)">${fmtData(c.ultima_operacao)}</td>
+          <td><span class="pill ${c.excluido ? "outro" : "livre"}">${c.excluido ? "Excluído" : "Sem lead"}</span></td>
+        </tr>`).join("") + "</tbody></table>") + `</div>
+    <div class="dica">Contam para a meta coletiva, mas não para o placar individual.
+    Os "Sem lead" podem ser atribuídos na aba Conferir.</div>`;
+
   const livres = r["1 - nao falei"] || 0;
   const preHtml = comecou ? "" : `
     <div class="pre">
@@ -656,6 +678,7 @@ async function verPlacar(){
     <h2>${ger ? "Escalação e placar" : "Sua posição em campo"}</h2>
     <div class="podio ${lista.length === 1 ? "solo" : ""}">${cards || '<div class="vazio">O placar abre quando o jogo começar.</div>'}</div>
     ${metaHtml}
+    ${semDonoHtml}
     <h2>${ger ? "Funil da campanha" : "Seu funil"}</h2>
     <div class="funil">
       <div class="fase"><div class="k">${ger ? "Não falados" : "Falta falar"}</div><div class="v">${nf(r["1 - nao falei"] || 0)}</div></div>
